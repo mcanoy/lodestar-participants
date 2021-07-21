@@ -3,11 +3,11 @@ name: Build Container
 on:
   push:
     branches:
-      - main
+      - flyway
 
 jobs:
   build:
-    if: github.repository == 'rht-labs/lodestar-participants'
+    if: github.repository == 'mcanoy/lodestar-participants'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -17,27 +17,28 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 13.0.1
-    - name: Cache SonarCloud packages
-      uses: actions/cache@v1
-      with:
-        path: ~/.sonar/cache
-        key: ${{ runner.os }}-sonar
-        restore-keys: ${{ runner.os }}-sonar
-    - name: SonarCloud Static Analysis
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+#    - name: Cache SonarCloud packages
+#      uses: actions/cache@v1
+#      with:
+#        path: ~/.sonar/cache
+#        key: ${{ runner.os }}-sonar
+#        restore-keys: ${{ runner.os }}-sonar
+#    - name: SonarCloud Static Analysis
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#      run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
     - name: Find and Replace Commit
-      uses: jacobtomlinson/gha-find-replace@0.1.1
-      with:
-        find: "###GIT_COMMIT###"
-        replace: "${{ github.sha }}"
-        include: ".s2i"
+      shell:
+      env:
+        GH_SHA: ${{ github.sha }}"
+      run: |
+        sed -i 's/###GIT_COMMIT###/'"$GH_SHA"'/g' .s2i/environment
+        sed -i 's/###GIT_COMMIT###/'"$GH_SHA"'/g' src/main/resources/application.properties
     - uses: redhat-cop/github-actions/s2i@v2
       with:
         base: registry.access.redhat.com/ubi8/openjdk-11:1.3
-        output_image: "quay.io/rht-labs/lodestar-participants:${{ github.sha }}"
+        output_image: "quay.io/mcanoy/lodestar-participants:${{ github.sha }}"
         image_push_registry: quay.io
         image_push_username: ${{ secrets.QUAY_USERNAME }}
         image_push_password: ${{ secrets.QUAY_PASSWORD }}
