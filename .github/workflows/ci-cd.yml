@@ -29,7 +29,7 @@ jobs:
 #        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 #      run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
     - name: Find and Replace Commit
-      shell:
+      shell: bash
       env:
         GH_SHA: ${{ github.sha }}"
       run: |
